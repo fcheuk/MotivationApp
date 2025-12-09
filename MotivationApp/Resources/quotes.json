@@ -1,0 +1,162 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "content": "成功不是终点，失败也不是终结，唯有勇气才是永恒。",
+    "author": "温斯顿·丘吉尔",
+    "categoryId": "励志",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "content": "相信自己，你比想象中更强大。",
+    "author": "佚名",
+    "categoryId": "自信",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000003",
+    "content": "每一个不曾起舞的日子，都是对生命的辜负。",
+    "author": "尼采",
+    "categoryId": "生活",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000004",
+    "content": "今天的努力，明天的实力。",
+    "author": "佚名",
+    "categoryId": "学习",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000005",
+    "content": "不是因为有希望才坚持，而是因为坚持才有希望。",
+    "author": "佚名",
+    "categoryId": "励志",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000006",
+    "content": "你的态度决定你的高度。",
+    "author": "佚名",
+    "categoryId": "自信",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000007",
+    "content": "生活不是等待风暴过去，而是学会在雨中跳舞。",
+    "author": "佚名",
+    "categoryId": "生活",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000008",
+    "content": "学习不是人生的全部，但连学习都征服不了，你还能做什么？",
+    "author": "佚名",
+    "categoryId": "学习",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000009",
+    "content": "专业主义就是：即使不想做，也要做到最好。",
+    "author": "佚名",
+    "categoryId": "工作",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000010",
+    "content": "健康是 1，其他都是 0，没有 1，再多的 0 也没有意义。",
+    "author": "佚名",
+    "categoryId": "健康",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000011",
+    "content": "不要等待机会，而要创造机会。",
+    "author": "佚名",
+    "categoryId": "励志",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000012",
+    "content": "你的价值不取决于别人的评价，而取决于你自己的行动。",
+    "author": "佚名",
+    "categoryId": "自信",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000013",
+    "content": "生活中最大的幸福是坚信我们被爱着。",
+    "author": "雨果",
+    "categoryId": "生活",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000014",
+    "content": "读书是在别人思想的帮助下，建立起自己的思想。",
+    "author": "鲁巴金",
+    "categoryId": "学习",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000015",
+    "content": "效率是做好工作的灵魂。",
+    "author": "切斯特菲尔德",
+    "categoryId": "工作",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000016",
+    "content": "运动是生命的源泉，一切生命运动都是美的。",
+    "author": "达·芬奇",
+    "categoryId": "健康",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000017",
+    "content": "星光不问赶路人，时光不负有心人。",
+    "author": "佚名",
+    "categoryId": "励志",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000018",
+    "content": "你可以一辈子不登山，但你心中一定要有座山。",
+    "author": "佚名",
+    "categoryId": "自信",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000019",
+    "content": "生活就像骑自行车，只有不断前进，才能保持平衡。",
+    "author": "爱因斯坦",
+    "categoryId": "生活",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000020",
+    "content": "教育的目的是用广阔的知识海洋，一个空白而愚昧的头脑变得思想丰富。",
+    "author": "契误夫",
+    "categoryId": "学习",
+    "isFavorite": false,
+    "createdDate": "2025-12-09T00:00:00Z"
+  }
+]
