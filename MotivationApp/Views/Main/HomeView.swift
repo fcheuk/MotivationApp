@@ -10,96 +10,228 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var dataManager: DataManager
     @StateObject private var viewModel = QuoteViewModel()
-    @State private var showSettings = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var isTransitioning: Bool = false
+    @State private var transitionDirection: TransitionDirection = .none
     @State private var showShareSheet = false
     
+    enum TransitionDirection {
+        case none, up, down
+    }
+    
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // 标题
-                    VStack(spacing: 8) {
-                        Text("今日激励")
-                            .font(.title)
-                            .fontWeight(.bold)
+        GeometryReader { geometry in
+            let screenHeight = geometry.size.height
+            
+            ZStack {
+                // 全屏背景图
+                backgroundView
+                    .ignoresSafeArea()
+                
+                // 内容区域
+                VStack(spacing: 0) {
+                    // 可滑动的文案区域
+                    ZStack {
+                        // 上一页内容（从上方进入）
+                        if transitionDirection == .down, let prevQuote = viewModel.previousQuoteContent {
+                            quoteView(for: prevQuote)
+                                .offset(y: dragOffset - screenHeight)
+                        }
                         
-                        Text(Date().formatted(style: .long))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        // 当前页内容
+                        if let currentQuote = viewModel.currentQuote {
+                            quoteView(for: currentQuote)
+                                .offset(y: dragOffset)
+                        }
+                        
+                        // 下一页内容（从下方进入）
+                        if transitionDirection == .up, let nextQuote = viewModel.nextQuoteContent {
+                            quoteView(for: nextQuote)
+                                .offset(y: dragOffset + screenHeight)
+                        }
                     }
-                    .padding(.top, 20)
-                    
-                    // 连续打卡天数
-                    HStack {
-                        Image(systemName: "flame.fill")
-                            .foregroundColor(.orange)
-                        Text("已连续打卡 \(dataManager.getConsecutiveDays()) 天")
-                            .font(.headline)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(Constants.UI.cornerRadius)
-                    .padding(.horizontal)
-                    
-                    // 语录卡片
-                    if let quote = viewModel.currentQuote {
-                        QuoteCard(
-                            quote: quote,
-                            onFavorite: {
-                                withAnimation {
-                                    viewModel.toggleFavorite()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle()) // 确保整个区域可响应手势
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                dragOffset = value.translation.height
+                                // 根据滑动方向显示对应的预览页
+                                if value.translation.height < 0 {
+                                    transitionDirection = .up
+                                } else if value.translation.height > 0 {
+                                    transitionDirection = .down
                                 }
-                            },
-                            onShare: {
-                                showShareSheet = true
                             }
-                        )
-                        .padding(.horizontal)
-                    }
+                            .onEnded { value in
+                                let velocityThreshold: CGFloat = 300
+                                let distanceThreshold: CGFloat = screenHeight / 3 // 滑动距离超过1/3屏幕
+                                let velocity = value.predictedEndLocation.y - value.location.y
+                                let distance = value.translation.height
+                                
+                                if velocity < -velocityThreshold || distance < -distanceThreshold {
+                                    // 快速上滑 或 滑动距离超过1/3 -> 切换到下一句
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        dragOffset = -screenHeight
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        viewModel.nextQuote()
+                                        dataManager.checkIn()
+                                        dragOffset = 0
+                                        transitionDirection = .none
+                                    }
+                                } else if velocity > velocityThreshold || distance > distanceThreshold {
+                                    // 快速下滑 或 滑动距离超过1/3 -> 切换到上一句
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        dragOffset = screenHeight
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        viewModel.previousQuote()
+                                        dataManager.checkIn()
+                                        dragOffset = 0
+                                        transitionDirection = .none
+                                    }
+                                } else {
+                                    // 速度不够且距离不够，返回原位
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        dragOffset = 0
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        transitionDirection = .none
+                                    }
+                                }
+                            }
+                    )
                     
-                    // 刷新按钮
-                    Button(action: {
-                        withAnimation {
-                            viewModel.loadRandomQuote()
-                            dataManager.checkIn()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.clockwise")
-                            Text("换一条")
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(hex: "#FF6B6B"))
-                        .cornerRadius(Constants.UI.cornerRadius)
                     }
-                    .padding(.horizontal)
-                    
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let quote = viewModel.currentQuote {
+                ShareSheet(items: [viewModel.shareQuote()])
+            }
+        }
+    }
+    
+    // MARK: - 背景视图
+    private var backgroundView: some View {
+        ZStack {
+            // 渐变背景作为默认
+            LinearGradient(
+                colors: [
+                    Color(hex: "#1a1a2e") ?? Color.black,
+                    Color(hex: "#16213e") ?? Color.black,
+                    Color(hex: "#0f3460") ?? Color.blue
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            
+        }
+    }
+    
+    // MARK: - 单个语录视图（包含文案和按钮）
+    private func quoteView(for quote: Quote) -> some View {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            // 文案内容
+            VStack(spacing: 16) {
+                Text(quote.content)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineSpacing(8)
+                    .padding(.horizontal, 24)
+                    .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                
+                // 作者
+                HStack {
                     Spacer()
+                    Text("— \(quote.author)")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.trailing, 24)
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showSettings = true
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.gray)
+            
+            Spacer()
+            
+            // 底部按钮（跟随滑动）
+            actionButtonsView(for: quote)
+                .padding(.bottom, 16)
+        }
+    }
+    
+    // MARK: - 底部按钮视图
+    private func actionButtonsView(for quote: Quote) -> some View {
+        HStack(spacing: 40) {
+            // 下载按钮
+            Button(action: {
+                saveQuoteAsImage()
+            }) {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.title2)
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            
+            // 点赞/收藏按钮
+            Button(action: {
+                withAnimation {
+                    viewModel.toggleFavorite()
+                }
+            }) {
+                Image(systemName: quote.isFavorite ? "heart.fill" : "heart")
+                    .font(.title2)
+                    .foregroundColor(quote.isFavorite ? .red : .white.opacity(0.8))
+            }
+        }
+        .padding(.vertical, 16)
+    }
+    
+    // MARK: - 保存图片
+    private func saveQuoteAsImage() {
+        guard let quote = viewModel.currentQuote else { return }
+        
+        // 创建要保存的视图
+        let renderer = ImageRenderer(content:
+            ZStack {
+                // 背景
+                LinearGradient(
+                    colors: [
+                        Color(hex: "#1a1a2e") ?? Color.black,
+                        Color(hex: "#16213e") ?? Color.black,
+                        Color(hex: "#0f3460") ?? Color.blue
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                
+                // 文案
+                VStack(spacing: 16) {
+                    Text(quote.content)
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.leading)
+                        .lineSpacing(8)
+                        .padding(.horizontal, 24)
+                    
+                    HStack {
+                        Spacer()
+                        Text("— \(quote.author)")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(.trailing, 24)
                     }
                 }
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
-            .sheet(isPresented: $showShareSheet) {
-                if let quote = viewModel.currentQuote {
-                    ShareSheet(items: [viewModel.shareQuote()])
-                }
-            }
+            .frame(width: 390, height: 844)
+        )
+        
+        renderer.scale = UIScreen.main.scale
+        
+        if let uiImage = renderer.uiImage {
+            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
         }
     }
 }
