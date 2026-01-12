@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var isTransitioning: Bool = false
     @State private var transitionDirection: TransitionDirection = .none
     @State private var showShareSheet = false
+    @State private var showThemeSheet = false
     
     enum TransitionDirection {
         case none, up, down
@@ -27,6 +28,9 @@ struct HomeView: View {
                 // 全屏背景图
                 backgroundView
                     .ignoresSafeArea()
+                
+                // 四个角标按钮
+                cornerButtonsOverlay
                 
                 // 内容区域
                 VStack(spacing: 0) {
@@ -111,6 +115,9 @@ struct HomeView: View {
                 ShareSheet(items: [viewModel.shareQuote()])
             }
         }
+        .sheet(isPresented: $showThemeSheet) {
+            CategoryListView()
+        }
     }
     
     // MARK: - 背景视图
@@ -130,7 +137,7 @@ struct HomeView: View {
         }
     }
     
-    // MARK: - 单个语录视图（包含文案和按钮）
+    // MARK: - 单个语录视图（包含文案）
     private func quoteView(for quote: Quote) -> some View {
         VStack(spacing: 0) {
             Spacer()
@@ -156,37 +163,58 @@ struct HomeView: View {
             }
             
             Spacer()
-            
-            // 底部按钮（跟随滑动）
-            actionButtonsView(for: quote)
-                .padding(.bottom, 16)
         }
     }
     
-    // MARK: - 底部按钮视图
-    private func actionButtonsView(for quote: Quote) -> some View {
-        HStack(spacing: 40) {
-            // 下载按钮
-            Button(action: {
-                saveQuoteAsImage()
-            }) {
-                Image(systemName: "square.and.arrow.down")
-                    .font(.title2)
-                    .foregroundColor(.white.opacity(0.8))
+    // MARK: - 四个角标按钮
+    private var cornerButtonsOverlay: some View {
+        ZStack {
+            // 左上角 - 设置
+            VStack {
+                HStack {
+                    CornerButton(icon: "gearshape.fill") {
+                        // 设置功能
+                    }
+                    Spacer()
+                }
+                Spacer()
             }
             
-            // 点赞/收藏按钮
-            Button(action: {
-                withAnimation {
-                    viewModel.toggleFavorite()
+            // 右上角 - 分享
+            VStack {
+                HStack {
+                    Spacer()
+                    CornerButton(icon: "square.and.arrow.up") {
+                        showShareSheet = true
+                    }
                 }
-            }) {
-                Image(systemName: quote.isFavorite ? "heart.fill" : "heart")
-                    .font(.title2)
-                    .foregroundColor(quote.isFavorite ? .red : .white.opacity(0.8))
+                Spacer()
+            }
+            
+            // 左下角 - 下载
+            VStack {
+                Spacer()
+                HStack {
+                    CornerButton(icon: "arrow.down.to.line") {
+                        saveQuoteAsImage()
+                    }
+                    Spacer()
+                }
+            }
+            
+            // 右下角 - 主题
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    CornerButton(icon: "circle.hexagongrid.fill") {
+                        showThemeSheet = true
+                    }
+                }
             }
         }
-        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 50)
     }
     
     // MARK: - 保存图片
@@ -232,6 +260,24 @@ struct HomeView: View {
         
         if let uiImage = renderer.uiImage {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+        }
+    }
+}
+
+// MARK: - 角标按钮组件
+struct CornerButton: View {
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .background(Color.white.opacity(0.15))
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
         }
     }
 }
