@@ -40,6 +40,13 @@ struct MainTabView: View {
                     Label("日历", systemImage: "calendar")
                 }
                 .tag(3)
+            
+            // 话题
+            TopicListView()
+                .tabItem {
+                    Label("话题", systemImage: "bubble.left.and.bubble.right.fill")
+                }
+                .tag(4)
         }
         .accentColor(Color(hex: "#FF6B6B"))
     }

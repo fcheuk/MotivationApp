@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var transitionDirection: TransitionDirection = .none
     @State private var showShareSheet = false
     @State private var showThemeSheet = false
+    @State private var showTopicSheet = false
     
     enum TransitionDirection {
         case none, up, down
@@ -118,6 +119,9 @@ struct HomeView: View {
         .sheet(isPresented: $showThemeSheet) {
             CategoryListView()
         }
+        .sheet(isPresented: $showTopicSheet) {
+            TopicListView()
+        }
     }
     
     // MARK: - 背景视图
@@ -163,6 +167,16 @@ struct HomeView: View {
             }
             
             Spacer()
+            
+            // 底部下载按钮
+            Button(action: {
+                saveQuoteAsImage()
+            }) {
+                Image(systemName: "arrow.down.to.line")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            .padding(.bottom, 40)
         }
     }
     
@@ -191,12 +205,12 @@ struct HomeView: View {
                 Spacer()
             }
             
-            // 左下角 - 下载
+            // 左下角 - 话题
             VStack {
                 Spacer()
                 HStack {
-                    CornerButton(icon: "arrow.down.to.line") {
-                        saveQuoteAsImage()
+                    CornerButton(icon: "bubble.left.and.bubble.right.fill") {
+                        showTopicSheet = true
                     }
                     Spacer()
                 }
