@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var showShareSheet = false
     @State private var showThemeSheet = false
     @State private var showTopicSheet = false
+    @State private var showSettingsSheet = false
     
     enum TransitionDirection {
         case none, up, down
@@ -122,6 +123,9 @@ struct HomeView: View {
         .sheet(isPresented: $showTopicSheet) {
             TopicListView()
         }
+        .sheet(isPresented: $showSettingsSheet) {
+            SettingsView()
+        }
     }
     
     // MARK: - 背景视图
@@ -167,16 +171,6 @@ struct HomeView: View {
             }
             
             Spacer()
-            
-            // 底部下载按钮
-            Button(action: {
-                saveQuoteAsImage()
-            }) {
-                Image(systemName: "arrow.down.to.line")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            .padding(.bottom, 40)
         }
     }
     
@@ -187,7 +181,7 @@ struct HomeView: View {
             VStack {
                 HStack {
                     CornerButton(icon: "gearshape.fill") {
-                        // 设置功能
+                        showSettingsSheet = true
                     }
                     Spacer()
                 }
