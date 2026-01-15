@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var dataManager: DataManager
     @StateObject private var viewModel = QuoteViewModel()
+    @ObservedObject private var wallpaperManager = WallpaperManager.shared
     @State private var dragOffset: CGFloat = 0
     @State private var isTransitioning: Bool = false
     @State private var transitionDirection: TransitionDirection = .none
@@ -17,6 +18,7 @@ struct HomeView: View {
     @State private var showThemeSheet = false
     @State private var showTopicSheet = false
     @State private var showSettingsSheet = false
+    @State private var showWallpaperPicker = false
     
     enum TransitionDirection {
         case none, up, down
@@ -131,18 +133,95 @@ struct HomeView: View {
     // MARK: - 背景视图
     private var backgroundView: some View {
         ZStack {
-            // 渐变背景作为默认
-            LinearGradient(
-                colors: [
-                    Color(hex: "#1a1a2e") ?? Color.black,
-                    Color(hex: "#16213e") ?? Color.black,
-                    Color(hex: "#0f3460") ?? Color.blue
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            
+            switch wallpaperManager.config.type {
+            case .gradient:
+                // 渐变背景
+                if let theme = wallpaperManager.currentGradientTheme {
+                    LinearGradient(
+                        colors: theme.colors.compactMap { Color(hex: $0) },
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                } else {
+                    // 默认渐变
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#1a1a2e") ?? Color.black,
+                            Color(hex: "#16213e") ?? Color.black,
+                            Color(hex: "#0f3460") ?? Color.blue
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
+                
+            case .preset:
+                // 内置壁纸
+                if let wallpaper = wallpaperManager.currentPresetWallpaper,
+                   let uiImage = loadWallpaperImage(wallpaper.imageName) {
+                    GeometryReader { geo in
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                    }
+                } else {
+                    // 回退到默认渐变
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#1a1a2e") ?? Color.black,
+                            Color(hex: "#16213e") ?? Color.black,
+                            Color(hex: "#0f3460") ?? Color.blue
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
+                
+            case .custom:
+                // 自定义壁纸
+                if let image = wallpaperManager.customImage {
+                    GeometryReader { geo in
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                    }
+                } else {
+                    // 回退到默认渐变
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#1a1a2e") ?? Color.black,
+                            Color(hex: "#16213e") ?? Color.black,
+                            Color(hex: "#0f3460") ?? Color.blue
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
+            }
         }
+    }
+    
+    // MARK: - 加载壁纸图片
+    private func loadWallpaperImage(_ name: String) -> UIImage? {
+        // 先尝试从 Assets 加载
+        if let image = UIImage(named: name) {
+            return image
+        }
+        // 尝试从 Bundle 加载 jpg
+        if let path = Bundle.main.path(forResource: name, ofType: "jpg"),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+        // 尝试从 Bundle 加载 png
+        if let path = Bundle.main.path(forResource: name, ofType: "png"),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+        return nil
     }
     
     // MARK: - 单个语录视图（包含文案）
