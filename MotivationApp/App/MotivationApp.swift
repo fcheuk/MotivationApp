@@ -21,7 +21,7 @@ struct MotivationApp: App {
     var body: some Scene {
         WindowGroup {
             if hasCompletedOnboarding {
-                MainTabView()
+                HomeView()
                     .environmentObject(dataManager)
                     .environmentObject(notificationManager)
             } else {

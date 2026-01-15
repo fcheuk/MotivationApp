@@ -31,9 +31,6 @@ struct HomeView: View {
                 backgroundView
                     .ignoresSafeArea()
                 
-                // 四个角标按钮
-                cornerButtonsOverlay
-                
                 // 内容区域
                 VStack(spacing: 0) {
                     // 可滑动的文案区域
@@ -110,6 +107,9 @@ struct HomeView: View {
                     )
                     
                     }
+                
+                // 四个角标按钮（放在最上层）
+                cornerButtonsOverlay
             }
         }
         .sheet(isPresented: $showShareSheet) {
