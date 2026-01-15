@@ -10,92 +10,120 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var dataManager: DataManager
-    @State private var showNotificationSettings = false
     
     var body: some View {
         NavigationView {
-            List {
-                // 通知设置
-                Section("通知") {
-                    Button(action: {
-                        showNotificationSettings = true
-                    }) {
-                        HStack {
-                            Image(systemName: "bell.fill")
-                                .foregroundColor(.orange)
-                            Text("通知设置")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.gray)
-                                .font(.caption)
-                        }
-                    }
-                }
-                
-                // 外观设置
-                Section("外观") {
-                    Picker("主题", selection: $dataManager.settings.selectedTheme) {
-                        ForEach(AppTheme.allCases, id: \.self) { theme in
-                            Text(theme.rawValue).tag(theme)
-                        }
-                    }
-                    .onChange(of: dataManager.settings.selectedTheme) { _ in
-                        dataManager.saveSettings()
-                    }
+            ScrollView {
+                VStack(spacing: 0) {
+                    // 升级高级版横幅
+                    PremiumBanner()
+                        .padding(.horizontal)
+                        .padding(.top, 16)
+                        .padding(.bottom, 24)
                     
-                    Picker("字体大小", selection: $dataManager.settings.fontSize) {
-                        ForEach(FontSize.allCases, id: \.self) { size in
-                            Text(size.rawValue).tag(size)
+                    // 设置列表
+                    VStack(spacing: 0) {
+                        SettingsRow(icon: "square.grid.2x2", title: "小组件设定")
+                        Divider().padding(.leading, 56)
+                        
+                        SettingsRow(icon: "lock.shield", title: "隐私政策") {
+                            openURL("https://example.com/privacy")
                         }
+                        Divider().padding(.leading, 56)
+                        
+                        SettingsRow(icon: "doc.text", title: "服务条款") {
+                            openURL("https://example.com/terms")
+                        }
+                        Divider().padding(.leading, 56)
+                        
+                        SettingsRow(icon: "star", title: "给我们评价") {
+                            rateApp()
+                        }
+                        Divider().padding(.leading, 56)
+                        
+                        SettingsRow(icon: "arrow.clockwise", title: "恢复购买")
                     }
-                    .onChange(of: dataManager.settings.fontSize) { _ in
-                        dataManager.saveSettings()
-                    }
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 }
-                
-                // 关于
-                Section("关于") {
-                    HStack {
-                        Text("版本")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Link(destination: URL(string: "https://example.com/privacy")!) {
-                        HStack {
-                            Text("隐私政策")
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .foregroundColor(.gray)
-                                .font(.caption)
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://example.com/terms")!) {
-                        HStack {
-                            Text("用户协议")
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .foregroundColor(.gray)
-                                .font(.caption)
-                        }
-                    }
-                }
+                .padding(.vertical)
             }
+            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
-                        dismiss()
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "arrow.left")
+                            .foregroundColor(.primary)
                     }
                 }
             }
-            .sheet(isPresented: $showNotificationSettings) {
-                NotificationSettingsView()
+        }
+    }
+    
+    private func rateApp() {
+        if let url = URL(string: "https://apps.apple.com/app/motivation") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func openURL(_ urlString: String) {
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+// MARK: - 高级版横幅
+struct PremiumBanner: View {
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("升级高级版")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text("解锁所有功能，找到内心的平静。")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
+            Spacer()
+            Image(systemName: "heart.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.red)
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemGroupedBackground))
+        .cornerRadius(12)
+    }
+}
+
+// MARK: - 设置行
+struct SettingsRow: View {
+    let icon: String
+    let title: String
+    var action: (() -> Void)? = nil
+    
+    var body: some View {
+        Button(action: { action?() }) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(.white.opacity(0.7))
+                    .frame(width: 28, height: 28)
+                
+                Text(title)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
         }
     }
 }
