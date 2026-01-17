@@ -115,7 +115,7 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showShareSheet) {
-            if let quote = viewModel.currentQuote {
+            if viewModel.currentQuote != nil {
                 ShareSheet(items: [viewModel.shareQuote()])
             }
         }

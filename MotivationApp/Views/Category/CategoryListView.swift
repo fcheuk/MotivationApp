@@ -43,7 +43,7 @@ struct CategoryListView: View {
         .sheet(item: $selectedCategory) { category in
             CategoryDetailView(category: category)
         }
-        .onChange(of: selectedPhotoItem) { newItem in
+        .onChange(of: selectedPhotoItem) { _, newItem in
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
@@ -300,6 +300,104 @@ struct FilterChip: View {
                 .background(isSelected ? .white : Color.white.opacity(0.15))
                 .cornerRadius(20)
         }
+    }
+}
+
+// MARK: - 渐变主题单元格
+struct GradientThemeCell: View {
+    let theme: GradientTheme
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                LinearGradient(
+                    colors: theme.colors.compactMap { Color(hex: $0) },
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.blue)
+                        .background(Circle().fill(.white))
+                        .offset(x: 5, y: -5)
+                }
+                
+                VStack {
+                    Spacer()
+                    Text(theme.name)
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 8)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 内置壁纸单元格
+struct PresetWallpaperCell: View {
+    let wallpaper: PresetWallpaper
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Group {
+                    if let uiImage = loadWallpaperImage(wallpaper.imageName) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        LinearGradient(
+                            colors: [Color.gray.opacity(0.5), Color.gray.opacity(0.3)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .overlay(
+                            Image(systemName: "photo")
+                                .font(.title)
+                                .foregroundColor(.white.opacity(0.5))
+                        )
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.blue)
+                        .background(Circle().fill(.white))
+                        .offset(x: 5, y: -5)
+                }
+            }
+        }
+    }
+    
+    private func loadWallpaperImage(_ name: String) -> UIImage? {
+        if let image = UIImage(named: name) {
+            return image
+        }
+        if let path = Bundle.main.path(forResource: name, ofType: "jpg"),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+        if let path = Bundle.main.path(forResource: name, ofType: "png"),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+        return nil
     }
 }
 

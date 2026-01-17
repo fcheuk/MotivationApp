@@ -31,7 +31,6 @@ enum Constants {
         static let padding: CGFloat = 16
         static let cardPadding: CGFloat = 20
         static let iconSize: CGFloat = 24
-        static let categoryCardSize: CGFloat = 100
     }
     
     // MARK: - Animation
