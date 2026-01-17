@@ -10,7 +10,6 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var dataManager: DataManager
-    @State private var showWallpaperPicker = false
     
     var body: some View {
         NavigationView {
@@ -24,11 +23,6 @@ struct SettingsView: View {
                     
                     // 设置列表
                     VStack(spacing: 0) {
-                        SettingsRow(icon: "photo.fill", title: "壁纸设置") {
-                            showWallpaperPicker = true
-                        }
-                        Divider().padding(.leading, 56)
-                        
                         SettingsRow(icon: "square.grid.2x2", title: "小组件设定")
                         Divider().padding(.leading, 56)
                         
@@ -65,9 +59,6 @@ struct SettingsView: View {
                             .foregroundColor(.primary)
                     }
                 }
-            }
-            .sheet(isPresented: $showWallpaperPicker) {
-                WallpaperPickerView()
             }
         }
     }

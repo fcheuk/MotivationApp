@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct CategoryListView: View {
     @StateObject private var viewModel = CategoryViewModel()
+    @ObservedObject var wallpaperManager = WallpaperManager.shared
     @State private var selectedCategory: Category?
+    @State private var selectedPhotoItem: PhotosPickerItem?
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -24,6 +27,7 @@ struct CategoryListView: View {
                     VStack(alignment: .leading, spacing: 24) {
                         titleSection
                         filterSection
+                        wallpaperSection
                         
                         if !viewModel.combinedThemes.isEmpty {
                             combinedThemesSection
@@ -39,6 +43,114 @@ struct CategoryListView: View {
         .sheet(item: $selectedCategory) { category in
             CategoryDetailView(category: category)
         }
+        .onChange(of: selectedPhotoItem) { newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    await MainActor.run {
+                        wallpaperManager.setCustomWallpaper(image)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - 壁纸设置区域
+    private var wallpaperSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("壁纸设置")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+            
+            // 渐变背景
+            VStack(alignment: .leading, spacing: 12) {
+                Text("渐变背景")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(GradientTheme.themes) { theme in
+                            GradientThemeCell(
+                                theme: theme,
+                                isSelected: wallpaperManager.config.type == .gradient &&
+                                           wallpaperManager.config.gradientThemeId == theme.id
+                            ) {
+                                wallpaperManager.setGradientTheme(theme)
+                            }
+                            .frame(width: 80, height: 100)
+                        }
+                    }
+                }
+            }
+            
+            // 精选壁纸
+            VStack(alignment: .leading, spacing: 12) {
+                Text("精选壁纸")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(PresetWallpaper.wallpapers) { wallpaper in
+                            PresetWallpaperCell(
+                                wallpaper: wallpaper,
+                                isSelected: wallpaperManager.config.type == .preset &&
+                                           wallpaperManager.config.presetWallpaperId == wallpaper.id
+                            ) {
+                                wallpaperManager.setPresetWallpaper(wallpaper)
+                            }
+                            .frame(width: 80, height: 100)
+                        }
+                    }
+                }
+            }
+            
+            // 自定义壁纸
+            VStack(alignment: .leading, spacing: 12) {
+                Text("自定义壁纸")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                
+                HStack(spacing: 12) {
+                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "photo.on.rectangle")
+                                .font(.system(size: 24))
+                            Text("相册")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(width: 80, height: 100)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                    
+                    if wallpaperManager.config.type == .custom,
+                       let image = wallpaperManager.customImage {
+                        ZStack(alignment: .topTrailing) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 100)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.blue, lineWidth: 3)
+                                )
+                            
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.blue)
+                                .background(Circle().fill(.white))
+                                .offset(x: 5, y: -5)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(16)
     }
     
     private var topNavigationBar: some View {
