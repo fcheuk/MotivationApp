@@ -1,0 +1,14 @@
+{
+  "name": "风景",
+  "icon": "mountain.2.fill",
+  "colorHex": "#34C759",
+  "description": "壮丽山河，心旷神怡",
+  "isPremium": false,
+  "wallpapers": [
+    { "name": "雪山日出", "file": "wallpaper_mountain", "isPremium": false },
+    { "name": "碧海蓝天", "file": "wallpaper_ocean", "isPremium": false },
+    { "name": "森林小径", "file": "wallpaper_forest", "isPremium": false },
+    { "name": "璀璨星空", "file": "wallpaper_stars", "isPremium": true },
+    { "name": "日落余晖", "file": "wallpaper_sunset", "isPremium": true }
+  ]
+}

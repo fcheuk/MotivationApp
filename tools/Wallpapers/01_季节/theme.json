@@ -1,0 +1,13 @@
+{
+  "name": "季节",
+  "icon": "leaf.fill",
+  "colorHex": "#FF9500",
+  "description": "四季更迭，感受自然之美",
+  "isPremium": false,
+  "wallpapers": [
+    { "name": "冬日雪景", "file": "wallpaper_mountain", "isPremium": false },
+    { "name": "秋日暖阳", "file": "wallpaper_sunset", "isPremium": false },
+    { "name": "夏日森林", "file": "wallpaper_forest", "isPremium": true },
+    { "name": "春日星空", "file": "wallpaper_stars", "isPremium": true }
+  ]
+}

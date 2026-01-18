@@ -1,0 +1,12 @@
+{
+  "name": "动物",
+  "icon": "pawprint.fill",
+  "colorHex": "#AF52DE",
+  "description": "可爱萌宠，治愈心灵",
+  "isPremium": true,
+  "wallpapers": [
+    { "name": "可爱猫咪", "file": "theme_animal_cat", "isPremium": true },
+    { "name": "忠诚狗狗", "file": "theme_animal_dog", "isPremium": true },
+    { "name": "野生动物", "file": "theme_animal_wild", "isPremium": true }
+  ]
+}

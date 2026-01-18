@@ -1,0 +1,11 @@
+{
+  "name": "美食",
+  "icon": "fork.knife",
+  "colorHex": "#FF3B30",
+  "description": "色香味俱全，治愈你的心",
+  "isPremium": true,
+  "wallpapers": [
+    { "name": "精致甜点", "file": "theme_food_dessert", "isPremium": true },
+    { "name": "咖啡时光", "file": "theme_food_coffee", "isPremium": true }
+  ]
+}

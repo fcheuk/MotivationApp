@@ -1,0 +1,11 @@
+{
+  "name": "城市",
+  "icon": "building.2.fill",
+  "colorHex": "#5856D6",
+  "description": "都市霓虹，繁华夜景",
+  "isPremium": true,
+  "wallpapers": [
+    { "name": "都市夜景", "file": "wallpaper_city", "isPremium": false },
+    { "name": "城市星空", "file": "wallpaper_stars", "isPremium": true }
+  ]
+}
