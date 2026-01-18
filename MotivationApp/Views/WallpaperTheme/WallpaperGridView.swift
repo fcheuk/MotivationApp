@@ -141,7 +141,7 @@ struct WallpaperThumbnail: View {
         Color.black.ignoresSafeArea()
         
         WallpaperGridView(
-            themeId: WallpaperTheme.seasonThemeId,
+            themeId: WallpaperTheme.sampleThemes.first?.id ?? UUID(),
             isSubscribed: false
         ) { wallpaper in
             print("Tapped: \(wallpaper.name)")

@@ -1,0 +1,158 @@
+{
+  "themes": [
+    {
+      "id": "00000001-0000-0000-0000-000000000001",
+      "name": "季节",
+      "icon": "leaf.fill",
+      "colorHex": "#FF9500",
+      "description": "四季更迭，感受自然之美",
+      "isPremium": false
+    },
+    {
+      "id": "00000002-0000-0000-0000-000000000002",
+      "name": "风景",
+      "icon": "mountain.2.fill",
+      "colorHex": "#34C759",
+      "description": "壮丽山河，心旷神怡",
+      "isPremium": false
+    },
+    {
+      "id": "00000003-0000-0000-0000-000000000003",
+      "name": "美食",
+      "icon": "fork.knife",
+      "colorHex": "#FF3B30",
+      "description": "色香味俱全，治愈你的心",
+      "isPremium": true
+    },
+    {
+      "id": "00000004-0000-0000-0000-000000000004",
+      "name": "城市",
+      "icon": "building.2.fill",
+      "colorHex": "#5856D6",
+      "description": "都市霓虹，繁华夜景",
+      "isPremium": true
+    },
+    {
+      "id": "00000005-0000-0000-0000-000000000005",
+      "name": "动物",
+      "icon": "pawprint.fill",
+      "colorHex": "#AF52DE",
+      "description": "可爱萌宠，治愈心灵",
+      "isPremium": true
+    }
+  ],
+  "wallpapers": [
+    {
+      "id": "10000001-0000-0000-0000-000000000001",
+      "themeId": "00000001-0000-0000-0000-000000000001",
+      "name": "冬日雪景",
+      "imageName": "wallpaper_mountain",
+      "isPremium": false
+    },
+    {
+      "id": "10000002-0000-0000-0000-000000000002",
+      "themeId": "00000001-0000-0000-0000-000000000001",
+      "name": "秋日暖阳",
+      "imageName": "wallpaper_sunset",
+      "isPremium": false
+    },
+    {
+      "id": "10000003-0000-0000-0000-000000000003",
+      "themeId": "00000001-0000-0000-0000-000000000001",
+      "name": "夏日森林",
+      "imageName": "wallpaper_forest",
+      "isPremium": true
+    },
+    {
+      "id": "10000004-0000-0000-0000-000000000004",
+      "themeId": "00000001-0000-0000-0000-000000000001",
+      "name": "春日星空",
+      "imageName": "wallpaper_stars",
+      "isPremium": true
+    },
+    {
+      "id": "20000001-0000-0000-0000-000000000001",
+      "themeId": "00000002-0000-0000-0000-000000000002",
+      "name": "雪山日出",
+      "imageName": "wallpaper_mountain",
+      "isPremium": false
+    },
+    {
+      "id": "20000002-0000-0000-0000-000000000002",
+      "themeId": "00000002-0000-0000-0000-000000000002",
+      "name": "碧海蓝天",
+      "imageName": "wallpaper_ocean",
+      "isPremium": false
+    },
+    {
+      "id": "20000003-0000-0000-0000-000000000003",
+      "themeId": "00000002-0000-0000-0000-000000000002",
+      "name": "森林小径",
+      "imageName": "wallpaper_forest",
+      "isPremium": false
+    },
+    {
+      "id": "20000004-0000-0000-0000-000000000004",
+      "themeId": "00000002-0000-0000-0000-000000000002",
+      "name": "璀璨星空",
+      "imageName": "wallpaper_stars",
+      "isPremium": true
+    },
+    {
+      "id": "20000005-0000-0000-0000-000000000005",
+      "themeId": "00000002-0000-0000-0000-000000000002",
+      "name": "日落余晖",
+      "imageName": "wallpaper_sunset",
+      "isPremium": true
+    },
+    {
+      "id": "30000001-0000-0000-0000-000000000001",
+      "themeId": "00000003-0000-0000-0000-000000000003",
+      "name": "精致甜点",
+      "imageName": "theme_food_dessert",
+      "isPremium": true
+    },
+    {
+      "id": "30000002-0000-0000-0000-000000000002",
+      "themeId": "00000003-0000-0000-0000-000000000003",
+      "name": "咖啡时光",
+      "imageName": "theme_food_coffee",
+      "isPremium": true
+    },
+    {
+      "id": "40000001-0000-0000-0000-000000000001",
+      "themeId": "00000004-0000-0000-0000-000000000004",
+      "name": "都市夜景",
+      "imageName": "wallpaper_city",
+      "isPremium": false
+    },
+    {
+      "id": "40000002-0000-0000-0000-000000000002",
+      "themeId": "00000004-0000-0000-0000-000000000004",
+      "name": "城市星空",
+      "imageName": "wallpaper_stars",
+      "isPremium": true
+    },
+    {
+      "id": "50000001-0000-0000-0000-000000000001",
+      "themeId": "00000005-0000-0000-0000-000000000005",
+      "name": "可爱猫咪",
+      "imageName": "theme_animal_cat",
+      "isPremium": true
+    },
+    {
+      "id": "50000002-0000-0000-0000-000000000002",
+      "themeId": "00000005-0000-0000-0000-000000000005",
+      "name": "忠诚狗狗",
+      "imageName": "theme_animal_dog",
+      "isPremium": true
+    },
+    {
+      "id": "50000003-0000-0000-0000-000000000003",
+      "themeId": "00000005-0000-0000-0000-000000000005",
+      "name": "野生动物",
+      "imageName": "theme_animal_wild",
+      "isPremium": true
+    }
+  ]
+}
