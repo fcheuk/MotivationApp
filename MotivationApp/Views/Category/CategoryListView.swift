@@ -6,249 +6,114 @@
 //
 
 import SwiftUI
-import PhotosUI
 
 struct CategoryListView: View {
-    @StateObject private var viewModel = CategoryViewModel()
+    @EnvironmentObject var dataManager: DataManager
     @ObservedObject var wallpaperManager = WallpaperManager.shared
-    @State private var selectedCategory: Category?
-    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedThemeFilter: WallpaperTheme?
+    @State private var showSubscriptionSheet = false
     @Environment(\.dismiss) var dismiss
+    
+    private var filteredWallpapers: [ThemeWallpaper] {
+        if let theme = selectedThemeFilter {
+            return ThemeWallpaper.wallpapers(for: theme.id)
+        }
+        return ThemeWallpaper.sampleWallpapers
+    }
     
     var body: some View {
         ZStack {
-            Color(hex: "#1C1C1E")
+            // 浅灰色背景
+            Color(hex: "#F2F2F7")
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 topNavigationBar
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
                         titleSection
                         filterSection
-                        wallpaperSection
+                        wallpapersGridSection
                         
-                        if !viewModel.combinedThemes.isEmpty {
-                            combinedThemesSection
+                        // 底部解锁全部按钮
+                        if !dataManager.settings.hasActiveSubscription {
+                            unlockAllButton
                         }
-                        
-                        recommendedSection
                     }
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 40)
                 }
             }
         }
-        .sheet(item: $selectedCategory) { category in
-            CategoryDetailView(category: category)
-        }
-        .onChange(of: selectedPhotoItem) { _, newItem in
-            Task {
-                if let data = try? await newItem?.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    await MainActor.run {
-                        wallpaperManager.setCustomWallpaper(image)
-                    }
-                }
-            }
+        .sheet(isPresented: $showSubscriptionSheet) {
+            SubscriptionView()
+                .environmentObject(dataManager)
         }
     }
     
-    // MARK: - 壁纸设置区域
-    private var wallpaperSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("壁纸设置")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            // 渐变背景
-            VStack(alignment: .leading, spacing: 12) {
-                Text("渐变背景")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(GradientTheme.themes) { theme in
-                            GradientThemeCell(
-                                theme: theme,
-                                isSelected: wallpaperManager.config.type == .gradient &&
-                                           wallpaperManager.config.gradientThemeId == theme.id
-                            ) {
-                                wallpaperManager.setGradientTheme(theme)
-                            }
-                            .frame(width: 80, height: 100)
-                        }
-                    }
-                }
-            }
-            
-            // 精选壁纸
-            VStack(alignment: .leading, spacing: 12) {
-                Text("精选壁纸")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(PresetWallpaper.wallpapers) { wallpaper in
-                            PresetWallpaperCell(
-                                wallpaper: wallpaper,
-                                isSelected: wallpaperManager.config.type == .preset &&
-                                           wallpaperManager.config.presetWallpaperId == wallpaper.id
-                            ) {
-                                wallpaperManager.setPresetWallpaper(wallpaper)
-                            }
-                            .frame(width: 80, height: 100)
-                        }
-                    }
-                }
-            }
-            
-            // 自定义壁纸
-            VStack(alignment: .leading, spacing: 12) {
-                Text("自定义壁纸")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-                
-                HStack(spacing: 12) {
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.system(size: 24))
-                            Text("相册")
-                                .font(.caption)
-                        }
-                        .foregroundColor(.white.opacity(0.7))
-                        .frame(width: 80, height: 100)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(12)
-                    }
-                    
-                    if wallpaperManager.config.type == .custom,
-                       let image = wallpaperManager.customImage {
-                        ZStack(alignment: .topTrailing) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 80, height: 100)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.blue, lineWidth: 3)
-                                )
-                            
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.blue)
-                                .background(Circle().fill(.white))
-                                .offset(x: 5, y: -5)
-                        }
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(16)
-    }
-    
+    // MARK: - 顶部导航栏
     private var topNavigationBar: some View {
         HStack {
             Button(action: {
                 dismiss()
             }) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(width: 32, height: 32)
-                    .background(Color.white.opacity(0.1))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.gray)
+                    .frame(width: 28, height: 28)
+                    .background(Color.gray.opacity(0.15))
                     .clipShape(Circle())
             }
             
             Spacer()
             
             Button(action: {
+                showSubscriptionSheet = true
             }) {
                 Text("解锁全部")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.black)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(20)
+                    .background(Color.gray.opacity(0.15))
+                    .cornerRadius(16)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
     
+    // MARK: - 标题
     private var titleSection: some View {
         Text("主题")
             .font(.system(size: 32, weight: .bold))
-            .foregroundColor(.white)
-            .padding(.top, 8)
+            .foregroundColor(.black)
     }
     
+    // MARK: - 筛选器
     private var filterSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                Button(action: {
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("创建主题")
-                            .font(.system(size: 15, weight: .medium))
+            HStack(spacing: 10) {
+                // "所有"筛选项
+                FilterPill(
+                    title: "所有",
+                    isSelected: selectedThemeFilter == nil
+                ) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedThemeFilter = nil
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color.white.opacity(0.15))
-                    .cornerRadius(20)
                 }
                 
-                ForEach(CategoryFilter.allCases, id: \.self) { filter in
-                    FilterChip(
-                        title: filter.rawValue,
-                        isSelected: viewModel.selectedFilter == filter
+                // 各主题筛选项
+                ForEach(WallpaperTheme.sampleThemes) { theme in
+                    FilterPill(
+                        title: theme.name,
+                        isSelected: selectedThemeFilter?.id == theme.id,
+                        isPremium: theme.isPremium
                     ) {
-                        viewModel.setFilter(filter)
-                    }
-                }
-            }
-        }
-    }
-    
-    private var combinedThemesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("组合主题")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Button(action: {
-                }) {
-                    Text("查看全部")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-            }
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(viewModel.combinedThemes) { category in
-                        Button(action: {
-                            selectedCategory = category
-                            viewModel.selectCategory(category)
-                        }) {
-                            CombinedThemeCard(
-                                category: category,
-                                width: 200,
-                                height: 140
-                            )
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedThemeFilter = theme
                         }
                     }
                 }
@@ -256,148 +121,172 @@ struct CategoryListView: View {
         }
     }
     
-    private var recommendedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("推荐")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            let columns = [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ]
-            
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(viewModel.filteredCategories) { category in
-                    Button(action: {
-                        selectedCategory = category
-                        viewModel.selectCategory(category)
-                    }) {
-                        ThemeCard(
-                            category: category,
-                            width: (UIScreen.main.bounds.width - 44) / 2,
-                            height: 200
-                        )
-                    }
+    // MARK: - 壁纸网格
+    private var wallpapersGridSection: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ], spacing: 12) {
+            ForEach(filteredWallpapers) { wallpaper in
+                WallpaperCard(
+                    wallpaper: wallpaper,
+                    isLocked: wallpaper.isPremium && !dataManager.settings.hasActiveSubscription,
+                    isSelected: wallpaperManager.config.type == .themeWallpaper &&
+                               wallpaperManager.config.themeWallpaperId == wallpaper.id.uuidString
+                ) {
+                    handleWallpaperTap(wallpaper)
                 }
             }
         }
     }
+    
+    private func handleWallpaperTap(_ wallpaper: ThemeWallpaper) {
+        if dataManager.settings.hasActiveSubscription || !wallpaper.isPremium {
+            wallpaperManager.setThemeWallpaper(wallpaper)
+        } else {
+            showSubscriptionSheet = true
+        }
+    }
+    
+    // MARK: - 底部解锁全部按钮
+    private var unlockAllButton: some View {
+        Button(action: {
+            showSubscriptionSheet = true
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 16))
+                Text("解锁全部主题壁纸")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(
+                    colors: [Color.orange, Color.orange.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(12)
+        }
+        .padding(.top, 10)
+    }
 }
 
-struct FilterChip: View {
+// MARK: - 筛选胶囊
+struct FilterPill: View {
     let title: String
     let isSelected: Bool
-    let action: () -> Void
+    var isPremium: Bool = false
+    let onTap: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(isSelected ? Color(hex: "#1C1C1E") : .white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(isSelected ? .white : Color.white.opacity(0.15))
-                .cornerRadius(20)
-        }
-    }
-}
-
-// MARK: - 渐变主题单元格
-struct GradientThemeCell: View {
-    let theme: GradientTheme
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                LinearGradient(
-                    colors: theme.colors.compactMap { Color(hex: $0) },
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-                )
+        Button(action: onTap) {
+            HStack(spacing: 4) {
+                Text(title)
+                    .font(.system(size: 14, weight: .medium))
                 
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                        .background(Circle().fill(.white))
-                        .offset(x: 5, y: -5)
-                }
-                
-                VStack {
-                    Spacer()
-                    Text(theme.name)
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.bottom, 8)
+                if isPremium {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 9))
+                        .foregroundColor(.orange)
                 }
             }
+            .foregroundColor(isSelected ? .black : .gray)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(isSelected ? .white : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+            )
+            .shadow(color: isSelected ? Color.black.opacity(0.08) : Color.clear, radius: 4, x: 0, y: 2)
         }
     }
 }
 
-// MARK: - 内置壁纸单元格
-struct PresetWallpaperCell: View {
-    let wallpaper: PresetWallpaper
+// MARK: - 壁纸卡片
+struct WallpaperCard: View {
+    let wallpaper: ThemeWallpaper
+    let isLocked: Bool
     let isSelected: Bool
-    let action: () -> Void
+    let onTap: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Group {
-                    if let uiImage = loadWallpaperImage(wallpaper.imageName) {
-                        Image(uiImage: uiImage)
+        Button(action: onTap) {
+            GeometryReader { geometry in
+                ZStack(alignment: .bottom) {
+                    // 壁纸图片或占位图
+                    if let image = UIImage(named: wallpaper.thumbnailName) {
+                        Image(uiImage: image)
                             .resizable()
                             .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
                     } else {
+                        // 占位渐变背景
                         LinearGradient(
-                            colors: [Color.gray.opacity(0.5), Color.gray.opacity(0.3)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .overlay(
-                            Image(systemName: "photo")
-                                .font(.title)
-                                .foregroundColor(.white.opacity(0.5))
+                            colors: [
+                                Color(hex: "#E8E8ED") ?? .gray,
+                                Color(hex: "#D1D1D6") ?? .gray
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-                )
-                
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                        .background(Circle().fill(.white))
-                        .offset(x: 5, y: -5)
+                    
+                    // 底部渐变遮罩和文字
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.6)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
+                    
+                    // 壁纸名称
+                    Text(wallpaper.name)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.bottom, 8)
+                    
+                    // 锁定图标
+                    if isLocked {
+                        Color.black.opacity(0.3)
+                        
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                    }
+                    
+                    // 选中标记
+                    if isSelected {
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.blue)
+                                    .background(Circle().fill(.white).padding(2))
+                            }
+                            Spacer()
+                        }
+                        .padding(6)
+                    }
                 }
             }
+            .aspectRatio(0.75, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+            )
+            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
-    }
-    
-    private func loadWallpaperImage(_ name: String) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-        if let path = Bundle.main.path(forResource: name, ofType: "jpg"),
-           let image = UIImage(contentsOfFile: path) {
-            return image
-        }
-        if let path = Bundle.main.path(forResource: name, ofType: "png"),
-           let image = UIImage(contentsOfFile: path) {
-            return image
-        }
-        return nil
     }
 }
 

@@ -13,17 +13,31 @@ struct AppSettings: Codable {
     var notificationTime: Date
     var selectedTheme: AppTheme
     var fontSize: FontSize
+    var isSubscribed: Bool
+    var subscriptionExpiryDate: Date?
     
     init(
         notificationsEnabled: Bool = false,
         notificationTime: Date = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date(),
         selectedTheme: AppTheme = .system,
-        fontSize: FontSize = .medium
+        fontSize: FontSize = .medium,
+        isSubscribed: Bool = false,
+        subscriptionExpiryDate: Date? = nil
     ) {
         self.notificationsEnabled = notificationsEnabled
         self.notificationTime = notificationTime
         self.selectedTheme = selectedTheme
         self.fontSize = fontSize
+        self.isSubscribed = isSubscribed
+        self.subscriptionExpiryDate = subscriptionExpiryDate
+    }
+    
+    var hasActiveSubscription: Bool {
+        guard isSubscribed else { return false }
+        if let expiryDate = subscriptionExpiryDate {
+            return expiryDate > Date()
+        }
+        return true
     }
 }
 

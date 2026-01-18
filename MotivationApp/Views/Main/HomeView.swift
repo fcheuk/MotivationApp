@@ -201,6 +201,30 @@ struct HomeView: View {
                         endPoint: .bottom
                     )
                 }
+                
+            case .themeWallpaper:
+                // 主题壁纸
+                if let themeWallpaper = wallpaperManager.currentThemeWallpaper,
+                   let uiImage = loadWallpaperImage(themeWallpaper.imageName) {
+                    GeometryReader { geo in
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                    }
+                } else {
+                    // 回退到默认渐变
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#1a1a2e") ?? Color.black,
+                            Color(hex: "#16213e") ?? Color.black,
+                            Color(hex: "#0f3460") ?? Color.blue
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
             }
         }
     }

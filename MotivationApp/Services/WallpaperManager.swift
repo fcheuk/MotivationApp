@@ -10,9 +10,10 @@ import PhotosUI
 
 // MARK: - 壁纸类型
 enum WallpaperType: String, Codable, CaseIterable {
-    case gradient = "gradient"      // 渐变背景
-    case preset = "preset"          // 内置壁纸
-    case custom = "custom"          // 用户自定义
+    case gradient = "gradient"          // 渐变背景
+    case preset = "preset"              // 内置壁纸
+    case custom = "custom"              // 用户自定义
+    case themeWallpaper = "theme"       // 主题壁纸
 }
 
 // MARK: - 渐变主题
@@ -53,12 +54,14 @@ struct WallpaperConfig: Codable {
     var gradientThemeId: String?
     var presetWallpaperId: String?
     var customImageData: Data?
+    var themeWallpaperId: String?
     
     static let `default` = WallpaperConfig(
         type: .gradient,
         gradientThemeId: "dark_blue",
         presetWallpaperId: nil,
-        customImageData: nil
+        customImageData: nil,
+        themeWallpaperId: nil
     )
 }
 
@@ -140,5 +143,24 @@ class WallpaperManager: ObservableObject {
     var currentPresetWallpaper: PresetWallpaper? {
         guard let id = config.presetWallpaperId else { return nil }
         return PresetWallpaper.wallpapers.first { $0.id == id }
+    }
+    
+    // MARK: - 设置主题壁纸
+    func setThemeWallpaper(_ wallpaper: ThemeWallpaper) {
+        config = WallpaperConfig(
+            type: .themeWallpaper,
+            gradientThemeId: nil,
+            presetWallpaperId: nil,
+            customImageData: nil,
+            themeWallpaperId: wallpaper.id.uuidString
+        )
+        customImage = nil
+    }
+    
+    // MARK: - 获取当前主题壁纸
+    var currentThemeWallpaper: ThemeWallpaper? {
+        guard let idString = config.themeWallpaperId,
+              let id = UUID(uuidString: idString) else { return nil }
+        return ThemeWallpaper.sampleWallpapers.first { $0.id == id }
     }
 }
