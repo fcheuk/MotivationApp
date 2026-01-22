@@ -39,4 +39,10 @@ enum Constants {
         static let springResponse: Double = 0.5
         static let springDamping: Double = 0.7
     }
+    
+    // MARK: - Subscription
+    enum Subscription {
+        static let monthlyProductID = "com.motivationapp.subscription.monthly"
+        static let yearlyProductID = "com.motivationapp.subscription.yearly"
+    }
 }

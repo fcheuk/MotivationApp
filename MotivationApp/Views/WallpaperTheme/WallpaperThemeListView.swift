@@ -9,8 +9,10 @@ import SwiftUI
 
 struct WallpaperThemeListView: View {
     @EnvironmentObject var dataManager: DataManager
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var selectedTheme: WallpaperTheme?
     @State private var showSubscriptionSheet = false
+    @State private var selectedWallpaperForPreview: ThemeWallpaper?
     @Environment(\.dismiss) var dismiss
     
     let themes = WallpaperTheme.sampleThemes
@@ -39,6 +41,18 @@ struct WallpaperThemeListView: View {
         }
         .sheet(isPresented: $showSubscriptionSheet) {
             SubscriptionView()
+        }
+        .sheet(item: $selectedWallpaperForPreview) { wallpaper in
+            WallpaperPreviewView(
+                wallpaper: wallpaper,
+                isSubscribed: subscriptionManager.isSubscribed,
+                onSubscribeTap: {
+                    selectedWallpaperForPreview = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showSubscriptionSheet = true
+                    }
+                }
+            )
         }
     }
     
@@ -118,7 +132,7 @@ struct WallpaperThemeListView: View {
                 
                 Spacer()
                 
-                if theme.isPremium && !dataManager.settings.hasActiveSubscription {
+                if theme.isPremium && !subscriptionManager.isSubscribed {
                     HStack(spacing: 4) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 12))
@@ -131,7 +145,7 @@ struct WallpaperThemeListView: View {
             
             WallpaperGridView(
                 themeId: theme.id,
-                isSubscribed: dataManager.settings.hasActiveSubscription,
+                isSubscribed: subscriptionManager.isSubscribed,
                 onWallpaperTap: { wallpaper in
                     handleWallpaperTap(wallpaper)
                 }
@@ -141,11 +155,8 @@ struct WallpaperThemeListView: View {
     }
     
     private func handleWallpaperTap(_ wallpaper: ThemeWallpaper) {
-        if dataManager.settings.hasActiveSubscription || !wallpaper.isPremium {
-            WallpaperManager.shared.setThemeWallpaper(wallpaper)
-        } else {
-            showSubscriptionSheet = true
-        }
+        // 打开预览页面
+        selectedWallpaperForPreview = wallpaper
     }
 }
 

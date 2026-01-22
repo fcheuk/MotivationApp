@@ -19,6 +19,8 @@ struct HomeView: View {
     @State private var showTopicSheet = false
     @State private var showSettingsSheet = false
     @State private var showWallpaperPicker = false
+    @State private var showSubscriptionSheet = false
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     
     enum TransitionDirection {
         case none, up, down
@@ -127,6 +129,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showSettingsSheet) {
             SettingsView()
+        }
+        .sheet(isPresented: $showSubscriptionSheet) {
+            SubscriptionView()
         }
     }
     
@@ -291,10 +296,35 @@ struct HomeView: View {
                 Spacer()
             }
             
-            // 右上角 - 分享
+            // 右上角 - 订阅/分享
             VStack {
                 HStack {
                     Spacer()
+                    
+                    // 订阅按钮（未订阅时显示）
+                    if !subscriptionManager.isSubscribed {
+                        Button(action: { showSubscriptionSheet = true }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 14))
+                                Text("升级")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.yellow, Color.orange],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(Capsule())
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        }
+                    }
+                    
                     CornerButton(icon: "square.and.arrow.up") {
                         showShareSheet = true
                     }

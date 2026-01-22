@@ -10,6 +10,10 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var dataManager: DataManager
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @State private var showSubscriptionView = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     var body: some View {
         ZStack {
@@ -24,7 +28,13 @@ struct SettingsView: View {
                         titleSection
                         
                         // 升级高级版横幅
-                        PremiumBanner()
+                        if subscriptionManager.isSubscribed {
+                            SubscribedBanner(expirationDate: subscriptionManager.subscriptionExpirationDate)
+                        } else {
+                            PremiumBanner {
+                                showSubscriptionView = true
+                            }
+                        }
                         
                         // 设置列表
                         VStack(spacing: 0) {
@@ -42,7 +52,9 @@ struct SettingsView: View {
                                 rateApp()
                             }
                             
-                            SettingsRow(icon: "arrow.clockwise", title: "恢复购买")
+                            SettingsRow(icon: "arrow.clockwise", title: "恢复购买") {
+                                restorePurchases()
+                            }
                         }
                         .background(Color.white.opacity(0.1))
                         .cornerRadius(12)
@@ -51,6 +63,14 @@ struct SettingsView: View {
                     .padding(.bottom, 40)
                 }
             }
+        }
+        .sheet(isPresented: $showSubscriptionView) {
+            SubscriptionView()
+        }
+        .alert("提示", isPresented: $showAlert) {
+            Button("确定", role: .cancel) {}
+        } message: {
+            Text(alertMessage)
         }
     }
     
@@ -94,11 +114,27 @@ struct SettingsView: View {
             UIApplication.shared.open(url)
         }
     }
+    
+    private func restorePurchases() {
+        Task {
+            await subscriptionManager.restorePurchases()
+            if let error = subscriptionManager.errorMessage {
+                alertMessage = error
+                showAlert = true
+            } else if subscriptionManager.isSubscribed {
+                alertMessage = "购买已恢复"
+                showAlert = true
+            }
+        }
+    }
 }
 
 // MARK: - 高级版横幅
 struct PremiumBanner: View {
+    var onTap: (() -> Void)? = nil
+    
     var body: some View {
+        Button(action: { onTap?() }) {
         ZStack(alignment: .leading) {
             LinearGradient(
                 colors: [
@@ -130,6 +166,64 @@ struct PremiumBanner: View {
             }
         }
         .frame(height: 120)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - 已订阅横幅
+struct SubscribedBanner: View {
+    var expirationDate: Date?
+    
+    private var expirationText: String {
+        if let date = expirationDate {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy年MM月dd日"
+            return "有效期至 \(formatter.string(from: date))"
+        }
+        return "永久有效"
+    }
+    
+    var body: some View {
+        ZStack(alignment: .leading) {
+            LinearGradient(
+                colors: [
+                    Color(hex: "#4CAF50") ?? .green,
+                    Color(hex: "#2E7D32") ?? .green
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(.yellow)
+                        
+                        Text("高级版会员")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text(expirationText)
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .padding(.leading, 20)
+                
+                Spacer()
+                
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(.white.opacity(0.2))
+                    .padding(.trailing, 20)
+            }
+        }
+        .frame(height: 100)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }

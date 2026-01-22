@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct SubscriptionView: View {
     @EnvironmentObject var dataManager: DataManager
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) var dismiss
     @State private var selectedPlan: SubscriptionPlan = .yearly
-    @State private var isProcessing = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     var body: some View {
         ZStack {
@@ -54,6 +57,24 @@ struct SubscriptionView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 40)
                 }
+            }
+            
+            if subscriptionManager.isLoading {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+            }
+        }
+        .alert("提示", isPresented: $showAlert) {
+            Button("确定", role: .cancel) {}
+        } message: {
+            Text(alertMessage)
+        }
+        .onChange(of: subscriptionManager.isSubscribed) { _, isSubscribed in
+            if isSubscribed {
+                dismiss()
             }
         }
     }
@@ -106,7 +127,8 @@ struct SubscriptionView: View {
             ForEach(SubscriptionPlan.allCases, id: \.self) { plan in
                 PlanCard(
                     plan: plan,
-                    isSelected: selectedPlan == plan
+                    isSelected: selectedPlan == plan,
+                    product: plan == .monthly ? subscriptionManager.monthlyProduct : subscriptionManager.yearlyProduct
                 ) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedPlan = plan
@@ -121,13 +143,8 @@ struct SubscriptionView: View {
             subscribe()
         }) {
             HStack {
-                if isProcessing {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
-                } else {
-                    Text("立即订阅")
-                        .font(.system(size: 18, weight: .bold))
-                }
+                Text(subscribeButtonText)
+                    .font(.system(size: 18, weight: .bold))
             }
             .foregroundColor(.black)
             .frame(maxWidth: .infinity)
@@ -141,7 +158,15 @@ struct SubscriptionView: View {
             )
             .cornerRadius(16)
         }
-        .disabled(isProcessing)
+        .disabled(subscriptionManager.isLoading)
+    }
+    
+    private var subscribeButtonText: String {
+        let product = selectedPlan == .monthly ? subscriptionManager.monthlyProduct : subscriptionManager.yearlyProduct
+        if let product = product {
+            return "立即订阅 \(product.displayPrice)"
+        }
+        return "立即订阅"
     }
     
     private var termsSection: some View {
@@ -169,30 +194,37 @@ struct SubscriptionView: View {
     }
     
     private func subscribe() {
-        isProcessing = true
+        let product = selectedPlan == .monthly ? subscriptionManager.monthlyProduct : subscriptionManager.yearlyProduct
         
-        // 模拟订阅流程（实际应接入 StoreKit）
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            var settings = dataManager.settings
-            settings.isSubscribed = true
-            settings.subscriptionExpiryDate = Calendar.current.date(
-                byAdding: selectedPlan == .yearly ? .year : .month,
-                value: 1,
-                to: Date()
-            )
-            dataManager.settings = settings
-            dataManager.saveSettings()
-            
-            isProcessing = false
-            dismiss()
+        guard let product = product else {
+            alertMessage = "产品信息加载中，请稍后再试"
+            showAlert = true
+            return
+        }
+        
+        Task {
+            do {
+                let success = try await subscriptionManager.purchase(product)
+                if success {
+                    // 购买成功，视图会自动关闭
+                }
+            } catch {
+                alertMessage = error.localizedDescription
+                showAlert = true
+            }
         }
     }
     
     private func restorePurchase() {
-        // 模拟恢复购买（实际应接入 StoreKit）
-        isProcessing = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isProcessing = false
+        Task {
+            await subscriptionManager.restorePurchases()
+            if let error = subscriptionManager.errorMessage {
+                alertMessage = error
+                showAlert = true
+            } else if subscriptionManager.isSubscribed {
+                alertMessage = "购买已恢复"
+                showAlert = true
+            }
         }
     }
 }
@@ -209,7 +241,7 @@ enum SubscriptionPlan: CaseIterable {
         }
     }
     
-    var price: String {
+    var fallbackPrice: String {
         switch self {
         case .monthly: return "¥18"
         case .yearly: return "¥128"
@@ -263,7 +295,12 @@ struct FeatureRow: View {
 struct PlanCard: View {
     let plan: SubscriptionPlan
     let isSelected: Bool
+    var product: Product?
     let onTap: () -> Void
+    
+    private var displayPrice: String {
+        product?.displayPrice ?? plan.fallbackPrice
+    }
     
     var body: some View {
         Button(action: onTap) {
@@ -289,7 +326,7 @@ struct PlanCard: View {
                 Spacer()
                 
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(plan.price)
+                    Text(displayPrice)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                     
