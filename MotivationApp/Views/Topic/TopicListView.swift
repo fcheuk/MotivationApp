@@ -10,6 +10,7 @@ import SwiftUI
 struct TopicListView: View {
     @EnvironmentObject var dataManager: DataManager
     @StateObject private var viewModel = TopicViewModel()
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var showSubscriptionSheet = false
     @Environment(\.dismiss) var dismiss
     
@@ -24,11 +25,16 @@ struct TopicListView: View {
                     
                     VStack(spacing: 24) {
                         titleSection
-                        unlockPromoBanner
+                        
+                        // 未订阅时显示解锁横幅
+                        if !subscriptionManager.isSubscribed {
+                            unlockPromoBanner
+                        }
+                        
                         categoriesSection
                         
-                        // 底部解锁全部按钮
-                        if !dataManager.settings.hasActiveSubscription {
+                        // 底部解锁全部按钮（未订阅时显示）
+                        if !subscriptionManager.isSubscribed {
                             unlockAllButton
                         }
                     }
@@ -124,7 +130,11 @@ struct TopicListView: View {
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(viewModel.categoryTopics) { topic in
-                TopicCard(topic: topic, isFullWidth: true)
+                TopicCard(
+                    topic: topic,
+                    isFullWidth: true,
+                    isSubscribed: subscriptionManager.isSubscribed
+                )
             }
         }
     }
@@ -159,6 +169,12 @@ struct TopicListView: View {
 struct TopicCard: View {
     let topic: Topic
     var isFullWidth: Bool = false
+    var isSubscribed: Bool = false
+    
+    // 订阅后解锁所有话题
+    private var isLocked: Bool {
+        topic.isLocked && !isSubscribed
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -176,7 +192,7 @@ struct TopicCard: View {
             
             Spacer()
             
-            if topic.isLocked {
+            if isLocked {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.5))
