@@ -12,6 +12,7 @@ struct TopicListView: View {
     @StateObject private var viewModel = TopicViewModel()
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var showSubscriptionSheet = false
+    @State private var selectedTopic: Topic?
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -46,6 +47,20 @@ struct TopicListView: View {
         .sheet(isPresented: $showSubscriptionSheet) {
             SubscriptionView()
                 .environmentObject(dataManager)
+        }
+        .fullScreenCover(item: $selectedTopic) { topic in
+            TopicDetailView(topic: topic)
+                .environmentObject(dataManager)
+        }
+    }
+    
+    // MARK: - 处理话题点击
+    private func handleTopicTap(_ topic: Topic) {
+        let isLocked = topic.isLocked && !subscriptionManager.isSubscribed
+        if isLocked {
+            showSubscriptionSheet = true
+        } else {
+            selectedTopic = topic
         }
     }
     
@@ -130,11 +145,14 @@ struct TopicListView: View {
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(viewModel.categoryTopics) { topic in
-                TopicCard(
-                    topic: topic,
-                    isFullWidth: true,
-                    isSubscribed: subscriptionManager.isSubscribed
-                )
+                Button(action: { handleTopicTap(topic) }) {
+                    TopicCard(
+                        topic: topic,
+                        isFullWidth: true,
+                        isSubscribed: subscriptionManager.isSubscribed
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }
